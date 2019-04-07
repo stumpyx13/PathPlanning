@@ -37,6 +37,10 @@ class Obstacle{
 		// member functions
 		bool inObstacle(std::shared_ptr<Point> p) const; // Check if point is in obstacle
 		bool lineIntersects(const std::shared_ptr<Line> p_line) const;
+		double getdx() const;
+		double getdy() const;
+		double getX() const;
+		double getY() const;
 };
 class Point{
 	protected:

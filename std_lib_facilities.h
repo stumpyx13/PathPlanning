@@ -9,6 +9,6 @@
 #include <stdexcept>
 #include <list>
 #include <memory>
-
+#include <cassert>
 
 #endif

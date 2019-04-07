@@ -26,9 +26,11 @@ class RRT_star{
 	protected:
 		int N_points = 1; // Number of points to sample successfully
 		std::vector<std::shared_ptr<TreeNode<T>>> nodeList;
-		Environment& env; // Environment to apply RRT* algorithm
-		Obstacle& goalRegion; // Goal region
-		T& start; // Start/root of the tree
+		std::shared_ptr<Environment> env; // Environment to apply RRT* algorithm
+		std::shared_ptr<Obstacle> goalRegion; // Goal region
+		std::shared_ptr<T> start; // Start/root of the tree
+		
+		std::vector<std::shared_ptr<TreeNode<T>>> goalNodes;
 
 		// Internal member functions
 		bool extend(const double radius); // return value indicates whether or not extend succeeded (obstacle free, new node added)
@@ -53,7 +55,8 @@ class RRT_star{
 			std::shared_ptr<TreeNode<T>> getNearestNode
 			(const std::shared_ptr<T> p_proposedItem) const;
 
-		};
-
+		void initiate(double radius); //initiate RRT calculation
+		TreeAncestorPath<T> getFinalPath(); // get path resulting from RRT* calculation, if multiple paths exist, choose the best one
+};
 #endif
 

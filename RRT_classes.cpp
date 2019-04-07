@@ -5,9 +5,9 @@ RRT_star<T>::RRT_star(int N, Environment& env_input, Obstacle& goal_in,
 		T& start_in){
 	N_points = N;
 	nodeList.reserve(N_points);
-	env = env_input;
-	goalRegion = goal_in;
-	start = start_in;
+	env = std::make_shared<Environment>(env_input);
+	goalRegion = std::make_shared<Obstacle>(goal_in);
+	start = std::make_shared<T>(start_in);
 }
 
 template<typename T>
@@ -30,15 +30,15 @@ bool RRT_star<T>::extend(const double radius){
 	//extend leads to a new TreeNode
 	//Generate random point/item
 	std::shared_ptr<T> p_proposedItem = std::make_shared<T>(T());
-	p_proposedItem->genRandom();
-	
+	p_proposedItem->genRandom(*env);
+	std::cout << "Point generated: (" << p_proposedItem->getX() << ","<< p_proposedItem->getY() << ")" << std::endl;	
 	// Find nearest node
 	std::shared_ptr<TreeNode<T>> nearestNode 
 		= getNearestNode(p_proposedItem);
 
 	// Steer towards generated point/item from nearest node
 	std::shared_ptr<T> newItem = steer(nearestNode, p_proposedItem);
-	
+	//std::cout << "Point steered to: (" << newItem->getX() << "," << newItem->getY() <<")" << std::endl;
 	// Check if new item can be reached through the nearest node
 	if(!collisionCheck(newItem, nearestNode->getItem())){
 		extend_success = true;
@@ -50,7 +50,7 @@ bool RRT_star<T>::extend(const double radius){
 		// Determine cost of new TreeNode
 		newNode->setCost(nearestNode->getCost() 
 				+ calculateCost(newNode));
-		double bestCost = newNode.getCost();
+		double bestCost = newNode->getCost();
 		auto p_minNode = nearestNode;
 		// Get nearby nodes
 		auto p_nearNodes = getNearNodes(newItem, radius);
@@ -103,9 +103,9 @@ bool RRT_star<T>::extend(const double radius){
 template<typename T>
 bool RRT_star<T>::collisionCheck(std::shared_ptr<T> p1, std::shared_ptr<T> p2){
 	bool collision = 0;
-	std::shared_ptr<Line> proposedLine = std::make_shared<Line>(Line(p1, p2));
-	if(env.obstacleFree(p1) && env.obstacleFree(p2)){
-		for(auto ob : env.getObstacleList()){
+	std::shared_ptr<Line> proposedLine = std::make_shared<Line>(p1, p2);
+	if(env->obstacleFree(p1) && env->obstacleFree(p2)){
+		for(auto ob : env->getObstacleList()){
 			if(ob->lineIntersects(proposedLine)){
 				collision = 1;
 				break;
@@ -124,7 +124,7 @@ std::shared_ptr<TreeNode<T>> RRT_star<T>::getNearestNode(
 	const std::shared_ptr<T> p_proposedItem) const{
 	
 	std::shared_ptr<TreeNode<T>> current_nearestNode = nullptr;
-	double bestDistance = 1000;
+	double bestDistance = 10000;
 	for (auto p_node_check : nodeList){
 		auto p_item_check = p_node_check->getItem();
 		auto distance = 
@@ -132,6 +132,7 @@ std::shared_ptr<TreeNode<T>> RRT_star<T>::getNearestNode(
 		if(distance < bestDistance || 
 				current_nearestNode ==nullptr){
 			current_nearestNode = p_node_check;
+			bestDistance = distance;
 		}
 	}
 	return current_nearestNode;
@@ -152,7 +153,7 @@ std::vector<std::shared_ptr<TreeNode<T>>> RRT_star<T>::getNearNodes(const std::s
 		auto p_item = p_node_check->getItem();
 		auto distance = p_item->calculateDistance(p_node);
 		if(distance <= radius){
-			nearNodeList.push_back(p_node);
+			nearNodeList.push_back(p_node_check);
 		}
 	}
 	return nearNodeList;
@@ -164,4 +165,63 @@ double RRT_star<T>::calculateCost(const std::shared_ptr<TreeNode<T>> node) const
         std::shared_ptr<TreeNode<T>> parent = node->getParent();
 	std::shared_ptr<T> item_par = parent->getItem();	
 	return item_cur->calculateDistance(item_par);	
+}
+
+template<typename T>
+void RRT_star<T>::initiate(double radius){
+	// Required assumptions:
+	// 1) goalRegion sits in the environment env
+	// 2) goalRegion is a region (not a single point)
+	// 3) Environment, goal region, and start point exist
+	
+	// check assumptions
+	bool goalRegion_x_greaterThanZero = goalRegion->getdx() > 0;
+	bool goalRegion_y_greaterThanZero = goalRegion->getdy() > 0;
+	assert(goalRegion_x_greaterThanZero);
+	assert(goalRegion_y_greaterThanZero);
+	
+	bool env_x_greaterThanZero = env->getDeltaX() > 0;
+	bool env_y_greaterThanZero = env->getDeltaY() > 0;
+
+	assert(env_x_greaterThanZero);
+	assert(env_y_greaterThanZero);
+
+	bool goalRegion_x_inEnvironment = goalRegion->getX() < env->getDeltaX();
+	bool goalRegion_y_inEnvironment = goalRegion->getY() < env->getDeltaY();
+	assert(goalRegion_x_inEnvironment);
+	assert(goalRegion_y_inEnvironment);
+
+	// main routine
+	std::shared_ptr<TreeNode<T>> startNode = 
+		std::make_shared<TreeNode<T>>(TreeNode<T>(start)); //make startNode
+	nodeList.push_back(startNode); //add start node
+	for(int i = 1; i < N_points; i++){
+		bool extendSuccess =  extend(radius);
+		if(extendSuccess){
+			//std::cout << "RRT node added at iteration: " << i << std::endl;
+			auto lastItemAdded = nodeList.back()->getItem();
+			if(goalRegion->inObstacle(lastItemAdded)){
+				goalNodes.push_back(nodeList.back());
+				std::cout << "Goal reached at iteration: "<< i << std::endl;
+			}
+		}
+		else{
+			std::cout << "Extend failed at iteration: " << i << std::endl;
+		}
+
+	}
+}
+
+template<typename T>
+TreeAncestorPath<T> RRT_star<T>::getFinalPath(){
+	double currentBestCost = -1;
+	std::shared_ptr<TreeNode<T>> bestGoalNode;
+	assert(!goalNodes.empty());
+	for(auto p_node_check : goalNodes){
+		if(currentBestCost == -1 || 
+				p_node_check->getCost() < currentBestCost){
+			bestGoalNode = p_node_check;
+		}
+	}
+	return TreeAncestorPath<T>(*bestGoalNode);
 }

@@ -79,6 +79,19 @@ bool Obstacle::lineIntersects(const std::shared_ptr<Line> p_line) const{
 	return intersect;
 }
 
+double Obstacle::getdx() const{
+	return dx;
+}
+double Obstacle::getdy() const{
+	return dy;
+}
+double Obstacle::getX() const{
+	return x;
+}
+double Obstacle::getY() const{
+	return y;
+}
+
 Point::Point(){}
 
 Point::Point(double xSet, double ySet){
@@ -124,9 +137,11 @@ std::shared_ptr<Point> Point::moveTowards(const std::shared_ptr<Point> p_goal,co
 	}
 	else{
 		double proportion_dist = dist/goal_dist;
-	       	return std::make_shared<Point>(Point(
-			proportion_dist*p_goal->getX(),
-			proportion_dist*p_goal->getY()));
+		double goalX = p_goal->getX();
+		double goalY = p_goal->getY();
+	       	return std::make_shared<Point>(
+			(proportion_dist*(goalX-x))+x,
+			(proportion_dist*(goalY-y))+y);
 	}
 }
 
