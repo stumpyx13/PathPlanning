@@ -1,5 +1,5 @@
 #PathPlanning
-Project used to test standard path planning algorithms (README current as of 4/3/19)
+Project used to test standard path planning algorithms (README current as of 4/8/19)
 Currently contains 3 primary class files:
 1) environment_classes: Contains class definitions for Environment, Obstacle, Point, and Line.
   a) Environment is a 2D representation of the environment, paramterized by the length along the x-direction (deltaX) and y-directon (deltaY). Bottom left-hand corner is assumed to lie at the origin (0,0). Has one vector containing shared_ptrs to the Obstacles in the Environment.
@@ -13,4 +13,4 @@ Currently contains 3 primary class files:
   
 3) RRT_classes: Contains a single class definition for RRT_star
   a) RRT_star: Represents the RRT* algorithm from a start to an end region in the Environment. It is paramterized by the number of desired sampled points (N_points), a vector of shared_ptrs to TreeNodes resulting from RRT*, an Environment (env), a goal region (represented by an Obstacle, goalRegion) and a start (T, where T is the item/point in the Environment).
-  When the RRT_star constructor is invoked, the algorithm is run. Only one constructor is provided for this reason that requires all parameters as input.
+  The RRT* constructor is used to set the parameters, and the algorithm is run when the member function initiate() is called.
