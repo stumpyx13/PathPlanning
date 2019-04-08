@@ -57,6 +57,7 @@ class RRT_star{
 
 		void initiate(double radius); //initiate RRT calculation
 		TreeAncestorPath<T> getFinalPath(); // get path resulting from RRT* calculation, if multiple paths exist, choose the best one
+		void printNodes(std::ofstream& os) const;
 };
 #endif
 

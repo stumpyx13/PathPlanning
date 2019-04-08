@@ -20,6 +20,9 @@ class Environment{
 		bool obstacleFree(std::shared_ptr<Point> p) const; // check if a point is in an obstacle free region
 		double getDeltaX() const;
 		double getDeltaY() const;
+
+		void printItem(std::ofstream& os) const;
+		double getMaxDistance() const;
 };
 class Obstacle{
 	protected:
@@ -41,6 +44,8 @@ class Obstacle{
 		double getdy() const;
 		double getX() const;
 		double getY() const;
+
+		void printItem(std::ofstream& os) const;
 };
 class Point{
 	protected:

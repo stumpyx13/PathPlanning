@@ -31,7 +31,7 @@ bool RRT_star<T>::extend(const double radius){
 	//Generate random point/item
 	std::shared_ptr<T> p_proposedItem = std::make_shared<T>(T());
 	p_proposedItem->genRandom(*env);
-	std::cout << "Point generated: (" << p_proposedItem->getX() << ","<< p_proposedItem->getY() << ")" << std::endl;	
+	//std::cout << "Point generated: (" << p_proposedItem->getX() << ","<< p_proposedItem->getY() << ")" << std::endl;	
 	// Find nearest node
 	std::shared_ptr<TreeNode<T>> nearestNode 
 		= getNearestNode(p_proposedItem);
@@ -86,10 +86,16 @@ bool RRT_star<T>::extend(const double radius){
 					(newItem,nearNode->getItem()) &&
 					nearNode->getCost() > 
 					newNode->getCost() 
-					  + calculateCost(nearNode)){}
+					  + calculateCost(nearNode)){
+					
+					nearNode->setCost(newNode->getCost() + calculateCost(nearNode));
+					nearNode->setParent(newNode);
+					
+				}
 				else{
-					nearNode->setParent(parentNode_org);
-				}		
+					nearNode->setParent(parentNode_org);				}
+					
+						
 			}
 		}
 		addNode(newNode);
@@ -124,7 +130,7 @@ std::shared_ptr<TreeNode<T>> RRT_star<T>::getNearestNode(
 	const std::shared_ptr<T> p_proposedItem) const{
 	
 	std::shared_ptr<TreeNode<T>> current_nearestNode = nullptr;
-	double bestDistance = 10000;
+	double bestDistance = env->getMaxDistance();
 	for (auto p_node_check : nodeList){
 		auto p_item_check = p_node_check->getItem();
 		auto distance = 
@@ -202,11 +208,11 @@ void RRT_star<T>::initiate(double radius){
 			auto lastItemAdded = nodeList.back()->getItem();
 			if(goalRegion->inObstacle(lastItemAdded)){
 				goalNodes.push_back(nodeList.back());
-				std::cout << "Goal reached at iteration: "<< i << std::endl;
+			//	std::cout << "Goal reached at iteration: "<< i << std::endl;
 			}
 		}
 		else{
-			std::cout << "Extend failed at iteration: " << i << std::endl;
+			//std::cout << "Extend failed at iteration: " << i << std::endl;
 		}
 
 	}
@@ -221,7 +227,16 @@ TreeAncestorPath<T> RRT_star<T>::getFinalPath(){
 		if(currentBestCost == -1 || 
 				p_node_check->getCost() < currentBestCost){
 			bestGoalNode = p_node_check;
+			currentBestCost = p_node_check->getCost();
 		}
 	}
 	return TreeAncestorPath<T>(*bestGoalNode);
+}
+
+template<typename T>
+void RRT_star<T>::printNodes(std::ofstream& os) const{
+	for (auto p_current_node : nodeList){
+		auto p_current_item = p_current_node->getItem();
+		p_current_item->printItem(os);
+	}
 }

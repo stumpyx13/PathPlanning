@@ -39,7 +39,13 @@ bool Environment::obstacleFree(std::shared_ptr<Point> p) const{// check if a poi
 	}
 }
 
+void Environment::printItem(std::ofstream& os) const{
+	os << deltaX << "," << deltaY << "\n";
+}
 
+double Environment::getMaxDistance() const{
+	return std::sqrt(pow(deltaX,2)+pow(deltaY,2));
+}
 	
 Obstacle::Obstacle(double xSet, double ySet, double dxSet, double dySet){
 	x = xSet;
@@ -49,8 +55,8 @@ Obstacle::Obstacle(double xSet, double ySet, double dxSet, double dySet){
 
 	pointList[0] = std::make_shared<Point>(Point{x,y});
 	pointList[1] = std::make_shared<Point>(Point{x+dx,y});
-	pointList[2] = std::make_shared<Point>(Point{x,y+dy});
-	pointList[3] = std::make_shared<Point>(Point{x+dx,y+dy});
+	pointList[2] = std::make_shared<Point>(Point{x,y-dy});
+	pointList[3] = std::make_shared<Point>(Point{x+dx,y-dy});
 
 	lineList[0] = std::make_shared<Line>(Line(pointList[0],pointList[1]));
 	lineList[1] = std::make_shared<Line>(Line(pointList[0],pointList[2]));
@@ -92,6 +98,10 @@ double Obstacle::getY() const{
 	return y;
 }
 
+void Obstacle::printItem(std::ofstream& os) const{
+	os << x << "," << y << "," << dx << "," << dy << "\n";
+}
+
 Point::Point(){}
 
 Point::Point(double xSet, double ySet){
@@ -111,7 +121,7 @@ void Point::setY(double ySet){
 	y = ySet;
 }
 void Point::printItem(std::ofstream& os) const{
-	os << "(" << x << "," << y <<")\n";
+	os << x << "," << y <<"\n";
 }
 double Point::calculateDistance(const std::shared_ptr<Point> p) const{
 	double p_x = p->getX();
