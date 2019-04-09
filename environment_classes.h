@@ -23,6 +23,9 @@ class Environment{
 
 		void printItem(std::ofstream& os) const;
 		double getMaxDistance() const;
+
+		void generateRandomObstacles(const int N_obstacles, 
+				const double sizeBound);
 };
 class Obstacle{
 	protected:
@@ -35,7 +38,9 @@ class Obstacle{
 		std::vector<std::shared_ptr<Line>> lineList = 
 			std::vector<std::shared_ptr<Line>>(4);
 	public:
-		//constructor
+		//constructors
+		Obstacle(){}
+		Obstacle(const double xMax, const double yMax, const double sizeBound);
 		Obstacle(double xSet, double ySet, double dxSet, double dySet);
 		// member functions
 		bool inObstacle(std::shared_ptr<Point> p) const; // Check if point is in obstacle
@@ -46,6 +51,8 @@ class Obstacle{
 		double getY() const;
 
 		void printItem(std::ofstream& os) const;
+		void genRandom(const double xMax, const double yMax,
+				const double sizeBound);
 };
 class Point{
 	protected:

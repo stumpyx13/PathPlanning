@@ -109,8 +109,9 @@ bool RRT_star<T>::extend(const double radius){
 template<typename T>
 bool RRT_star<T>::collisionCheck(std::shared_ptr<T> p1, std::shared_ptr<T> p2){
 	bool collision = 0;
-	std::shared_ptr<Line> proposedLine = std::make_shared<Line>(p1, p2);
+
 	if(env->obstacleFree(p1) && env->obstacleFree(p2)){
+		std::shared_ptr<Line> proposedLine = std::make_shared<Line>(p1, p2);
 		for(auto ob : env->getObstacleList()){
 			if(ob->lineIntersects(proposedLine)){
 				collision = 1;

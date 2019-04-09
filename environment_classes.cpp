@@ -46,6 +46,20 @@ void Environment::printItem(std::ofstream& os) const{
 double Environment::getMaxDistance() const{
 	return std::sqrt(pow(deltaX,2)+pow(deltaY,2));
 }
+
+void Environment::generateRandomObstacles(const int N_obstacles,
+		const double sizeBound){
+	for(int i = 1; i<= N_obstacles; i++){
+		std::shared_ptr<Obstacle> newOb =
+			std::make_shared<Obstacle>();
+		newOb->genRandom(deltaX, deltaY, sizeBound);
+		obstacleList.push_back(newOb);
+	}
+}
+
+Obstacle::Obstacle(const double xMax, const double yMax, const double sizeBound){
+	genRandom(xMax, yMax, sizeBound);
+}
 	
 Obstacle::Obstacle(double xSet, double ySet, double dxSet, double dySet){
 	x = xSet;
@@ -102,8 +116,28 @@ void Obstacle::printItem(std::ofstream& os) const{
 	os << x << "," << y << "," << dx << "," << dy << "\n";
 }
 
+void Obstacle::genRandom(const double xMax, const double yMax,const double sizeBound){
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	double lower_bound = 0;
+	std::uniform_real_distribution<> xDistribution(lower_bound,xMax);
+	std::uniform_real_distribution<> yDistribution(lower_bound,yMax);
+	std::uniform_real_distribution<> sizeDistribution(lower_bound,sizeBound);
+	x = xDistribution(gen);
+	y = yDistribution(gen);
+	dx = sizeDistribution(gen);
+	dy = sizeDistribution(gen);
+	pointList[0] = std::make_shared<Point>(Point{x,y});
+	pointList[1] = std::make_shared<Point>(Point{x+dx,y}); 	
+	pointList[2] = std::make_shared<Point>(Point{x,y-dy});
+	pointList[3] = std::make_shared<Point>(Point{x+dx,y-dy});
+	lineList[0] = std::make_shared<Line>(Line(pointList[0],pointList[1]));
+	lineList[1] = std::make_shared<Line>(Line(pointList[0],pointList[2])); 
+	lineList[2] = std::make_shared<Line>(Line(pointList[1],pointList[3])); 
+	lineList[3] = std::make_shared<Line>(Line(pointList[2],pointList[3]));
+}
 Point::Point(){}
-
+                                                                       
 Point::Point(double xSet, double ySet){
 	x = xSet;
 	y = ySet;
