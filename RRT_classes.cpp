@@ -78,8 +78,7 @@ bool RRT_star<T>::extend(const double radius){
 		newNode->setParent(p_minNode);
 		newNode->setCost(bestCost);
 		for(auto nearNode : p_nearNodes){
-			if(nearNode == p_minNode){}
-			else{
+			if(nearNode != p_minNode){
 				auto parentNode_org = nearNode->getParent();
 				nearNode->setParent(newNode);
 				if(!collisionCheck
@@ -93,9 +92,8 @@ bool RRT_star<T>::extend(const double radius){
 					
 				}
 				else{
-					nearNode->setParent(parentNode_org);				}
-					
-						
+					nearNode->setParent(parentNode_org);				
+				}
 			}
 		}
 		addNode(newNode);
@@ -108,19 +106,18 @@ bool RRT_star<T>::extend(const double radius){
 // Boolean indicates whether or not collision happens
 template<typename T>
 bool RRT_star<T>::collisionCheck(std::shared_ptr<T> p1, std::shared_ptr<T> p2){
-	bool collision = 0;
-
+	bool collision = false;
 	if(env->obstacleFree(p1) && env->obstacleFree(p2)){
 		std::shared_ptr<Line> proposedLine = std::make_shared<Line>(p1, p2);
 		for(auto ob : env->getObstacleList()){
 			if(ob->lineIntersects(proposedLine)){
-				collision = 1;
+				collision = true;
 				break;
 			}
 		}
 	}
 	else{
-		collision = 1;
+		collision = true;
 	}
 	return collision;
 }
