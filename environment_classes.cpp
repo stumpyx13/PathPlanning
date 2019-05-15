@@ -163,6 +163,14 @@ double Point::calculateDistance(const std::shared_ptr<Point> p) const{
 	return std::sqrt(pow(p_x-x,2) + pow(p_y-y,2));
 }
 
+double Point::calculateCost(const std::shared_ptr<Point> p) const{
+	// used instead of calculateDistance to reduce computation time (actual distance doesn't matter for comparison
+	// saves sqrt calculation time
+	double dx = p->getX()-x;
+	double dy = p->getY()-y;
+	return dx*dx + dy*dy;
+}
+
 void Point::genRandom(const Environment& env){
 	std::random_device rd; //Get random seed
 	std::mt19937 gen(rd()); //mersenne_twister_engine seeded with rd()
