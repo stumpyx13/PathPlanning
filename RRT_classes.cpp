@@ -129,10 +129,11 @@ std::shared_ptr<TreeNode<T>> RRT_star<T>::getNearestNode(
 	
 	std::shared_ptr<TreeNode<T>> current_nearestNode = nullptr;
 	double bestDistance = env->getMaxDistance();
+	bestDistance *= bestDistance; // Used to accomodate Point::calculateCost usage instead of calculateDistance
 	for (auto p_node_check : nodeList){
 		auto p_item_check = p_node_check->getItem();
 		auto distance = 
-			p_proposedItem->calculateDistance(p_item_check);
+			p_proposedItem->calculateCost(p_item_check); // Point::calculateCost is distance without the sqrt
 		if(distance < bestDistance || 
 				current_nearestNode ==nullptr){
 			current_nearestNode = p_node_check;
@@ -155,7 +156,8 @@ std::vector<std::shared_ptr<TreeNode<T>>> RRT_star<T>::getNearNodes(const std::s
 	std::vector<std::shared_ptr<TreeNode<T>>> nearNodeList;
 	for (auto p_node_check : nodeList){
 		auto p_item = p_node_check->getItem();
-		auto distance = p_item->calculateDistance(p_node);
+		auto distance = p_item->calculateCost(p_node); // Point::calculateCost is distance without the sqrt
+		radius *= radius;
 		if(distance <= radius){
 			nearNodeList.push_back(p_node_check);
 		}
@@ -168,7 +170,7 @@ double RRT_star<T>::calculateCost(const std::shared_ptr<TreeNode<T>> node) const
 	std::shared_ptr<T> item_cur = node->getItem();
         std::shared_ptr<TreeNode<T>> parent = node->getParent();
 	std::shared_ptr<T> item_par = parent->getItem();	
-	return item_cur->calculateDistance(item_par);	
+	return item_cur->calculateCost(item_par);	
 }
 
 template<typename T>
