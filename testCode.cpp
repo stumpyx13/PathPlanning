@@ -5,55 +5,60 @@
 #include "tree_classes.cpp"
 #include "RRT_classes.h"
 #include "RRT_classes.cpp"
+#include <chrono>
 int main()
 {
 	Environment env = Environment(50.0, 50.0);
 	auto obs1_p = std::make_shared<Obstacle>(25.0,25.0,5.0,5.0);
 	auto obs2_p = std::make_shared<Obstacle>(10,20,5,5);
-	
+
 	env.addObstacle(obs1_p);
 	env.addObstacle(obs2_p);
 	env.generateRandomObstacles(150,4.0);
 	Point start_point(1.0,1.0);
 	Obstacle goal_region(43.0,49.0,7.0,2.0);
 	auto obs_list = env.getObstacleList();
-	int N_samples = 10000;
+	int N_samples = 5000;
 	double radius = 2;
 
 	RRT_star<Point> rrtObject(N_samples, env, goal_region, start_point);
 	std::cout << "Initiating RRT!" << std::endl;
+	auto start = std::chrono::high_resolution_clock::now();
 	rrtObject.initiate(radius);
-	std::cout << "RRT initiaton/calculation complete!" << std::endl;
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop-start);
+	std::cout << "RRT initiaton/calculation complete" << std::endl;
+	std::cout << "Calculation time: " << double(duration.count())/1000000.0 << " seconds"<<std::endl;
 	TreeAncestorPath<Point> finalPath = rrtObject.getFinalPath();
 	std::cout << "Final path retrieved!" << std::endl;
 //	Point p_check1;
 //	p_check1.genRandom(env);
-//	Point p_check2; 
+//	Point p_check2;
 //	p_check2.genRandom(env);
-	
+
 	std::shared_ptr<Point> pointer_p1_check = std::make_shared<Point>(31,23);
 
 //	bool obsCheck1 = obs1_p->inObstacle(pointer_p1_check);
 	bool obsCheck2 = env.obstacleFree(pointer_p1_check);
-	
-//	std::cout << "Point 1: (" << p_check1.getX() << "," << 
+
+//	std::cout << "Point 1: (" << p_check1.getX() << "," <<
 //		p_check1.getY() << ")" << std::endl;
 //	std::cout << "Point 2: (" << p_check2.getX() << "," <<
 //		p_check2.getY() << ")" << std::endl;
 //	std::cout << "Obstacle check 1: "<< obsCheck1 << std::endl;
 	std::cout << "Obstacle check 1 inverse: " << obsCheck2 << std::endl;
-//	std::cout << "Distance between points: " << p_check1.calculateDistance(std::make_shared<Point>(p_check2)) << std::endl;	
+//	std::cout << "Distance between points: " << p_check1.calculateDistance(std::make_shared<Point>(p_check2)) << std::endl;
 //	TreeNode<Point> node1(std::make_shared<Point>(p_check1));
 //	TreeNode<Point> node2(std::make_shared<Point>(p_check2), std::make_shared<TreeNode<Point>>(node1));
-//	TreeAncestorPath<Point> treePath(node2);	
+//	TreeAncestorPath<Point> treePath(node2);
 	std::ofstream myfile ("optimalPath_RRTstar.csv");
 	if(myfile.is_open()){
 		std::cout << "Printing final path!" << std::endl;
 		finalPath.printPath(myfile);
-		myfile.close();	
+		myfile.close();
 	}
 	else std::cout << "Unable to open file" << std::endl;
-	
+
 	std::ofstream nodeFile("nodesSampled_RRTstar.csv");
 	if(nodeFile.is_open()){
 		std::cout << "Printing node list!" << std::endl;

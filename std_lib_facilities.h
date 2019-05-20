@@ -10,5 +10,10 @@
 #include <list>
 #include <memory>
 #include <cassert>
+#include <thread>
+#include <future>
+#include <functional>
+#include <utility>
+
 
 #endif

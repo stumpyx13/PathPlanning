@@ -29,35 +29,53 @@ class RRT_star{
 		std::shared_ptr<Environment> env; // Environment to apply RRT* algorithm
 		std::shared_ptr<Obstacle> goalRegion; // Goal region
 		std::shared_ptr<T> start; // Start/root of the tree
-		
+
 		std::vector<std::shared_ptr<TreeNode<T>>> goalNodes;
 
 		// Internal member functions
 		bool extend(const double radius); // return value indicates whether or not extend succeeded (obstacle free, new node added)
-		bool collisionCheck(std::shared_ptr<T> p1, 
+		bool collisionCheck(std::shared_ptr<T> p1,
 				std::shared_ptr<T> p2); // indicates whether or not the path between p1 and p2 has a collision (0 = no collision)
 
-		std::vector<std::shared_ptr<TreeNode<T>>> 
-			getNearNodes(const std::shared_ptr<T> p_node,
+		std::shared_ptr<TreeNode<T>> getNearestNodeParallel(
+			const std::shared_ptr<T> p_proposedItem) const;
+
+		std::shared_ptr<TreeNode<T>> getNearestNode_single(
+			const std::shared_ptr<T> p_proposedItem) const;
+
+		std::pair<double,std::shared_ptr<TreeNode<T>>> getNearestNode_worker(
+				const std::shared_ptr<T> p_proposedItem,
+				const typename std::vector<std::shared_ptr<TreeNode<T>>>::const_iterator start_i,
+				const typename std::vector<std::shared_ptr<TreeNode<T>>>::const_iterator end_i) const;
+
+		std::vector<std::shared_ptr<TreeNode<T>>> getNearNodesParallel(
+			const std::shared_ptr<T> p_node, const double radius);
+
+		std::vector<std::shared_ptr<TreeNode<T>>>
+			getNearNodes_single(const std::shared_ptr<T> p_node,
 				     const double radius) const; // returns all nodes within a set radius of the node pointed to by p_node
-		double calculateCost(const std::shared_ptr<TreeNode<T>> 
-				node) const; // calculate the cost betweensome node and its parent 
-		std::shared_ptr<T> steer(const
+
+	 std::vector<std::shared_ptr<TreeNode<T>>> getNearNodes_worker(const std::shared_ptr<T> p_node,
+			const double radius, const typename std::vector<std::shared_ptr<TreeNode<T>>>::const_iterator start_it,
+			const typename std::vector<std::shared_ptr<TreeNode<T>>>::const_iterator end_it) const;
+
+	 double calculateCost(const std::shared_ptr<TreeNode<T>>
+				node) const; // calculate the cost betweensome node and its parent
+
+	 std::shared_ptr<T> steer(const
 			std::shared_ptr<TreeNode<T>> p_nearestNode,
 			const std::shared_ptr<T> p_proposedItem); // steers the nearest node item towards the proposed item, dictated by chosen dynamics
+
 	public:
 		// constructor, initializes algorithm
 		RRT_star(int N, Environment& env_input, Obstacle& goal_in,
 				T& start_in);
-		
+
 		// Public Member functions
 		void addNode(std::shared_ptr<TreeNode<T>> newNode);
-			std::shared_ptr<TreeNode<T>> getNearestNode
-			(const std::shared_ptr<T> p_proposedItem) const;
 
 		void initiate(double radius); //initiate RRT calculation
 		TreeAncestorPath<T> getFinalPath(); // get path resulting from RRT* calculation, if multiple paths exist, choose the best one
 		void printNodes(std::ofstream& os) const;
 };
 #endif
-

@@ -24,7 +24,7 @@ class Environment{
 		void printItem(std::ofstream& os) const;
 		double getMaxDistance() const;
 
-		void generateRandomObstacles(const int N_obstacles, 
+		void generateRandomObstacles(const int N_obstacles,
 				const double sizeBound);
 };
 class Obstacle{
@@ -33,9 +33,9 @@ class Obstacle{
 		double y = 0; //y-position of the top left corner
 		double dx = 0; // length of obstacle in the x direction to the right
 		double dy = 0; // length of obstacle in the y direction to the bottom
-		std::vector<std::shared_ptr<Point>> pointList = 
+		std::vector<std::shared_ptr<Point>> pointList =
 			std::vector<std::shared_ptr<Point>>(4);
-		std::vector<std::shared_ptr<Line>> lineList = 
+		std::vector<std::shared_ptr<Line>> lineList =
 			std::vector<std::shared_ptr<Line>>(4);
 	public:
 		//constructors
@@ -71,6 +71,7 @@ class Point{
 		void setY(double ySet);// set y coordinate
 		void printItem(std::ofstream& os) const; // print point coordinates on single line
 		double calculateDistance(const std::shared_ptr<Point> p) const;
+		double calculateCost(const std::shared_ptr<Point> p) const;
 		std::shared_ptr<Point> moveTowards(const std::shared_ptr<Point> p_goal,const double dist) const;
 };
 
@@ -80,7 +81,7 @@ class Line{
 		std::shared_ptr<Point> p2;
 	public:
 		Line();
-		Line(std::shared_ptr<Point> p1_in, 
+		Line(std::shared_ptr<Point> p1_in,
 				std::shared_ptr<Point> p2_in);
 		std::shared_ptr<Point> getPoint1() const;
 		std::shared_ptr<Point> getPoint2() const;
