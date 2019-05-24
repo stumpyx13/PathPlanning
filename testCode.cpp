@@ -9,18 +9,22 @@
 int main()
 {
 	Environment env = Environment(50.0, 50.0);
-	auto obs1_p = std::make_shared<Obstacle>(25.0,25.0,5.0,5.0);
-	auto obs2_p = std::make_shared<Obstacle>(10,20,5,5);
+	auto obs1_p = std::make_shared<Obstacle>(10.0,50.0,2.0,45.0);
+	auto obs2_p = std::make_shared<Obstacle>(20,40,2,45);
+	auto obs3_p = std::make_shared<Obstacle>(30,50,2,45);
 
 	env.addObstacle(obs1_p);
 	env.addObstacle(obs2_p);
-	env.generateRandomObstacles(150,4.0);
-	Point start_point(1.0,1.0);
+	env.addObstacle(obs3_p);
+	//env.generateRandomObstacles(10,8.0);
+	Point start_point(1.0,48.0);
 	Obstacle goal_region(43.0,49.0,7.0,2.0);
 	auto obs_list = env.getObstacleList();
-	int N_samples = 5000;
-	double radius = 2;
-
+	int N_samples;
+	double radius = 4;
+	std::cout << "Number of samples?: ";
+	std::cin >> N_samples;
+	std::cout << std::endl;
 	RRT_star<Point> rrtObject(N_samples, env, goal_region, start_point);
 	std::cout << "Initiating RRT!" << std::endl;
 	auto start = std::chrono::high_resolution_clock::now();

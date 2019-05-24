@@ -54,6 +54,7 @@ bool RRT_star<T>::extend(const double radius){
 		auto p_minNode = nearestNode;
 		// Get nearby nodes
 		auto p_nearNodes = getNearNodesParallel(newItem, radius);
+		std::unordered_set<std::shared_ptr<TreeNode<T>>> freeCollision;
 		for(auto nearNode : p_nearNodes){
 		// For each nearby node, check if generated node can be
 		// reached through the nearby node
@@ -61,6 +62,7 @@ bool RRT_star<T>::extend(const double radius){
 		// better than the current path through the nearest node
 		// If cost is lower, prefer this path instead
 			if(!collisionCheck(newItem, nearNode->getItem())){
+				freeCollision.insert(nearNode);
 				newNode->setParent(nearNode);
 				double nearCost = nearNode->getCost()
 					+ calculateCost(newNode);
@@ -70,7 +72,7 @@ bool RRT_star<T>::extend(const double radius){
 				}
 			}
 		}
-
+		//std::cout << bestCost << std::endl;
 		// Check if nearby nodes can be reached through the
 		// generated node at a lower cost than the cost
 		// to reach them currently. If so, rewire to go through
@@ -81,15 +83,11 @@ bool RRT_star<T>::extend(const double radius){
 			if(nearNode != p_minNode){
 				auto parentNode_org = nearNode->getParent();
 				nearNode->setParent(newNode);
-				if(!collisionCheck
-					(newItem,nearNode->getItem()) &&
-					nearNode->getCost() >
-					newNode->getCost()
-					  + calculateCost(nearNode)){
+				if(freeCollision.find(nearNode) != freeCollision.end() &&
+					nearNode->getCost() > newNode->getCost() + calculateCost(nearNode)){
 
 					nearNode->setCost(newNode->getCost() + calculateCost(nearNode));
 					nearNode->setParent(newNode);
-
 				}
 				else{
 					nearNode->setParent(parentNode_org);

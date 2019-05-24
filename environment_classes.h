@@ -54,7 +54,7 @@ class Obstacle{
 		void genRandom(const double xMax, const double yMax,
 				const double sizeBound);
 };
-class Point{
+class Point{ // just position
 	protected:
 		double x = 0;
 		double y = 0;
@@ -73,6 +73,39 @@ class Point{
 		double calculateDistance(const std::shared_ptr<Point> p) const;
 		double calculateCost(const std::shared_ptr<Point> p) const;
 		std::shared_ptr<Point> moveTowards(const std::shared_ptr<Point> p_goal,const double dist) const;
+};
+
+class DynamicPoint : public Point { // includes Point "dynamics"
+	double dxdt = 0;
+	double dydt = 0;
+	double dxdtMax = 5;
+	double dydtMax = 5;
+	double d2xdt2 = 0;
+	double d2ydt2 = 0;
+
+	double accel_max = 1; // hard_coded for now, need to include in member functions
+
+	public:
+		DynamicPoint();
+		DynamicPoint(double xSet, double ySet, double dxdtSet, double dydtSet);
+
+		// override Point functions
+		void genRandom(const Environment& env);
+		double calculateDistance(const std::shared_ptr<DynamicPoint> p) const;
+		double calculateCost(const std::shared_ptr<DynamicPoint> p) const;
+		std::shared_ptr<DynamicPoint> moveTowards(const std::shared_ptr<DynamicPoint> p_goal,
+			const double dt) const;
+
+		// new member functions
+		double get_dxdtMax() const;
+		double get_dydtMax() const;
+		void set_dxdtMax(double dxdtMax_in);
+		void set_dydtMax(double dydtMax_in);
+
+		double get_dxdt() const;
+		double get_dydt() const;
+		void set_dxdt(double dxdt_in);
+		void set_dydt(double dydt_in);
 };
 
 class Line{

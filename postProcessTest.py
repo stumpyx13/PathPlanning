@@ -49,12 +49,13 @@ x_nodeList, y_nodeList = zip(*nodeList)
 x_optimalPath, y_optimalPath = zip(*optimalPath)
 
 #figure size
-plt.figure(figsize=(16,16))
-# plot optimal path
-plt.plot(x_optimalPath,y_optimalPath,'b-*',linewidth=3)
+plt.figure(figsize=(10,10))
 
 # plot sampled nodes
 plt.plot(x_nodeList,y_nodeList,'r.')
+
+# plot optimal path
+plt.plot(x_optimalPath,y_optimalPath,'b-*',linewidth=3)
 
 # plot start point
 plt.plot(x_start,y_start,'g.', markersize=30)
