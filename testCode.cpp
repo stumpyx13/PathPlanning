@@ -13,19 +13,24 @@ int main()
 	auto obs2_p = std::make_shared<Obstacle>(20,40,2,45);
 	auto obs3_p = std::make_shared<Obstacle>(30,50,2,45);
 
-	env.addObstacle(obs1_p);
+	// env.addObstacle(obs1_p);
 	env.addObstacle(obs2_p);
 	env.addObstacle(obs3_p);
 	//env.generateRandomObstacles(10,8.0);
-	Point start_point(1.0,48.0);
+	DynamicPoint start_point(1.0,1.0,0,0,10);
 	Obstacle goal_region(43.0,49.0,7.0,2.0);
 	auto obs_list = env.getObstacleList();
 	int N_samples;
-	double radius = 4;
+	double radius = 2;
+	double dtMax = 0.5;
 	std::cout << "Number of samples?: ";
 	std::cin >> N_samples;
 	std::cout << std::endl;
-	RRT_star<Point> rrtObject(N_samples, env, goal_region, start_point);
+	std::cout << "Max dt?: ";
+	std::cin >> dtMax;
+	std::cout << std::endl;
+	RRT_star<DynamicPoint> rrtObject(N_samples, env, goal_region, start_point);
+	rrtObject.setMaxDT(dtMax);
 	std::cout << "Initiating RRT!" << std::endl;
 	auto start = std::chrono::high_resolution_clock::now();
 	rrtObject.initiate(radius);
@@ -33,8 +38,17 @@ int main()
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop-start);
 	std::cout << "RRT initiaton/calculation complete" << std::endl;
 	std::cout << "Calculation time: " << double(duration.count())/1000000.0 << " seconds"<<std::endl;
-	TreeAncestorPath<Point> finalPath = rrtObject.getFinalPath();
-	std::cout << "Final path retrieved!" << std::endl;
+
+	std::ofstream treeFile("tree_RRTstar.csv");
+	if(treeFile.is_open()){
+		std::cout << "Printing found tree" << std::endl;
+		rrtObject.printTree(treeFile);
+		treeFile.close();
+	}
+	else std::cout << "Unable to open tree file" << std::endl;
+
+	TreeAncestorPath<DynamicPoint> finalPath = rrtObject.getFinalPath();
+	std::cout << "Final path retrieved with cost: " << finalPath.getPathCost() << std::endl;
 //	Point p_check1;
 //	p_check1.genRandom(env);
 //	Point p_check2;
@@ -71,12 +85,12 @@ int main()
 	}
 	else std::cout << "Unable to open node file" << std::endl;
 
-
 	std::ofstream envFile("environment.csv");
 	if(envFile.is_open()){
 		std::cout << "Printing environment parameters!" << std::endl;
 		env.printItem(envFile);
 		start_point.printItem(envFile);
+		envFile << std::endl;
 		goal_region.printItem(envFile);
 		envFile.close();
 	}

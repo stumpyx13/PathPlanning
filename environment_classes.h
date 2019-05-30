@@ -26,6 +26,8 @@ class Environment{
 
 		void generateRandomObstacles(const int N_obstacles,
 				const double sizeBound);
+
+		bool inEnvironment(std::shared_ptr<Point> p) const;
 };
 class Obstacle{
 	protected:
@@ -87,7 +89,8 @@ class DynamicPoint : public Point { // includes Point "dynamics"
 
 	public:
 		DynamicPoint();
-		DynamicPoint(double xSet, double ySet, double dxdtSet, double dydtSet);
+		DynamicPoint(double xSet, double ySet, double dxdtSet, double dydtSet,
+			double accel_max_in);
 
 		// override Point functions
 		void genRandom(const Environment& env);
@@ -106,6 +109,7 @@ class DynamicPoint : public Point { // includes Point "dynamics"
 		double get_dydt() const;
 		void set_dxdt(double dxdt_in);
 		void set_dydt(double dydt_in);
+		void printItem(std::ofstream& os) const;
 };
 
 class Line{

@@ -54,24 +54,27 @@ bool RRT_star<T>::extend(const double radius){
 		auto p_minNode = nearestNode;
 		// Get nearby nodes
 		auto p_nearNodes = getNearNodesParallel(newItem, radius);
-		std::unordered_set<std::shared_ptr<TreeNode<T>>> freeCollision;
-		for(auto nearNode : p_nearNodes){
-		// For each nearby node, check if generated node can be
-		// reached through the nearby node
-		// If so, calculate cost to do so and see if the path is
-		// better than the current path through the nearest node
-		// If cost is lower, prefer this path instead
-			if(!collisionCheck(newItem, nearNode->getItem())){
-				freeCollision.insert(nearNode);
-				newNode->setParent(nearNode);
-				double nearCost = nearNode->getCost()
-					+ calculateCost(newNode);
-				if(nearCost < bestCost){
-					bestCost = nearCost;
-					p_minNode = nearNode;
-				}
-			}
-		}
+
+
+		// std::unordered_set<std::shared_ptr<TreeNode<T>>> freeCollision;
+		// for(auto nearNode : p_nearNodes){
+		// // For each nearby node, check if generated node can be
+		// // reached through the nearby node
+		// // If so, calculate cost to do so and see if the path is
+		// // better than the current path through the nearest node
+		// // If cost is lower, prefer this path instead
+		// 	if(!collisionCheck(newItem, nearNode->getItem())){
+		// 		freeCollision.insert(nearNode);
+		// 		newNode->setParent(nearNode);
+		// 		double nearCost = nearNode->getCost()
+		// 			+ calculateCost(newNode);
+		// 		if(nearCost < bestCost){
+		// 			bestCost = nearCost;
+		// 			p_minNode = nearNode;
+		// 		}
+		// 	}
+		// }
+
 		//std::cout << bestCost << std::endl;
 		// Check if nearby nodes can be reached through the
 		// generated node at a lower cost than the cost
@@ -79,21 +82,21 @@ bool RRT_star<T>::extend(const double radius){
 		// generated node
 		newNode->setParent(p_minNode);
 		newNode->setCost(bestCost);
-		for(auto nearNode : p_nearNodes){
-			if(nearNode != p_minNode){
-				auto parentNode_org = nearNode->getParent();
-				nearNode->setParent(newNode);
-				if(freeCollision.find(nearNode) != freeCollision.end() &&
-					nearNode->getCost() > newNode->getCost() + calculateCost(nearNode)){
-
-					nearNode->setCost(newNode->getCost() + calculateCost(nearNode));
-					nearNode->setParent(newNode);
-				}
-				else{
-					nearNode->setParent(parentNode_org);
-				}
-			}
-		}
+		// for(auto nearNode : p_nearNodes){
+		// 	if(nearNode != p_minNode){
+		// 		auto parentNode_org = nearNode->getParent();
+		// 		nearNode->setParent(newNode);
+		// 		if(freeCollision.find(nearNode) != freeCollision.end() &&
+		// 			nearNode->getCost() > newNode->getCost() + calculateCost(nearNode)){
+		//
+		// 			nearNode->setCost(newNode->getCost() + calculateCost(nearNode));
+		// 			nearNode->setParent(newNode);
+		// 		}
+		// 		else{
+		// 			nearNode->setParent(parentNode_org);
+		// 		}
+		// 	}
+		// }
 		addNode(newNode);
 	}
 	return extend_success;
@@ -104,6 +107,9 @@ bool RRT_star<T>::extend(const double radius){
 // Boolean indicates whether or not collision happens
 template<typename T>
 bool RRT_star<T>::collisionCheck(std::shared_ptr<T> p1, std::shared_ptr<T> p2){
+
+	// check if in env
+	if(!env->inEnvironment(p1) || !env->inEnvironment(p2)){return true;}
 	bool collision = false;
 	if(env->obstacleFree(p1) && env->obstacleFree(p2)){
 		std::shared_ptr<Line> proposedLine = std::make_shared<Line>(p1, p2);
@@ -200,8 +206,8 @@ std::pair<double,std::shared_ptr<TreeNode<T>>> RRT_star<T>::getNearestNode_worke
 template<typename T>
 std::shared_ptr<T> RRT_star<T>::steer(const std::shared_ptr<TreeNode<T>> p_nearestNode, const std::shared_ptr<T> p_proposedItem){
 	auto nearestItem = p_nearestNode->getItem();
-	double max_distance = 0.5; // Currently hard-coded for testing, need to change
-	return nearestItem->moveTowards(p_proposedItem, max_distance);
+	 // Currently hard-coded for testing, need to change
+	return nearestItem->moveTowards(p_proposedItem, max_dt);
 
 }
 
@@ -368,5 +374,20 @@ void RRT_star<T>::printNodes(std::ofstream& os) const{
 	for (auto p_current_node : nodeList){
 		auto p_current_item = p_current_node->getItem();
 		p_current_item->printItem(os);
+		os << "\n";
+	}
+}
+
+template<typename T>
+void RRT_star<T>::printTree(std::ofstream& os) const{
+	for(auto p_current_node : nodeList){
+		if(p_current_node == nodeList[0]){continue;}
+		auto p_current_item = p_current_node->getItem();
+		p_current_item->printItem(os);
+		os << " ";
+		auto p_parent_node = p_current_node->getParent();
+		auto p_parent_item = p_parent_node->getItem();
+		p_parent_item->printItem(os);
+		os << "\n";
 	}
 }

@@ -25,6 +25,7 @@ template<typename T>
 class RRT_star{
 	protected:
 		int N_points = 1; // Number of points to sample successfully
+		double max_dt = 0.5;
 		std::vector<std::shared_ptr<TreeNode<T>>> nodeList;
 		std::shared_ptr<Environment> env; // Environment to apply RRT* algorithm
 		std::shared_ptr<Obstacle> goalRegion; // Goal region
@@ -77,5 +78,7 @@ class RRT_star{
 		void initiate(double radius); //initiate RRT calculation
 		TreeAncestorPath<T> getFinalPath(); // get path resulting from RRT* calculation, if multiple paths exist, choose the best one
 		void printNodes(std::ofstream& os) const;
+		void printTree(std::ofstream& os) const;
+		void setMaxDT(double dtMax_in){max_dt = dtMax_in;}
 };
 #endif

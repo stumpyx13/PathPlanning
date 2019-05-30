@@ -34,7 +34,7 @@ void TreeNode<T>::setParent(std::shared_ptr<TreeNode<T>> parent_in){ // set the 
 }
 
 template <typename T>
-std::shared_ptr<TreeNode<T>> TreeNode<T>::getParent() const{ 
+std::shared_ptr<TreeNode<T>> TreeNode<T>::getParent() const{
 	// get the TreeNode parent
 	return parent_p;
 }
@@ -64,7 +64,7 @@ void TreeAncestorPath<T>::createAncestorPath(const TreeNode<T>& youngestNode){ /
 		path.insert(path.begin(),parent);
 		std::shared_ptr<TreeNode<T>> currentNode = parent;
 		parent = currentNode->getParent();
-	}	
+	}
 }
 
 template <typename T>
@@ -72,11 +72,12 @@ std::vector<std::shared_ptr<TreeNode<T>>> TreeAncestorPath<T>::getPath() const{ 
 	return path;
 }
 
-template<typename T> 
+template<typename T>
 void TreeAncestorPath<T>::printPath(std::ofstream& os) const{
 	for(auto p_node : path){
 		auto nodeItem = p_node -> getItem();
 		nodeItem->printItem(os);
-	}	
+		os << "\n";
+	}
 }
 #endif

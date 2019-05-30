@@ -57,6 +57,10 @@ void Environment::generateRandomObstacles(const int N_obstacles,
 	}
 }
 
+	bool Environment::inEnvironment(std::shared_ptr<Point> p) const{
+		return p->getX() <= deltaX && p->getY() <= deltaY;
+	}
+
 // Obstacle =================================================================
 
 Obstacle::Obstacle(const double xMax, const double yMax, const double sizeBound){
@@ -159,7 +163,7 @@ void Point::setY(double ySet){
 	y = ySet;
 }
 void Point::printItem(std::ofstream& os) const{
-	os << x << "," << y <<"\n";
+	os << x << "," << y;
 }
 double Point::calculateDistance(const std::shared_ptr<Point> p) const{
 	double p_x = p->getX();
@@ -206,8 +210,8 @@ std::shared_ptr<Point> Point::moveTowards(const std::shared_ptr<Point> p_goal,co
 DynamicPoint::DynamicPoint(){};
 
 DynamicPoint::DynamicPoint(double xSet, double ySet, double dxdtSet, double dydtSet,
- double d2xdt2_in, double d2ydt2_in){
-	x = xSet; y = ySet; dxdt = dxdtSet; dydt = dydtSet;
+ double accel_max_in){
+	x = xSet; y = ySet; dxdt = dxdtSet; dydt = dydtSet; accel_max = accel_max_in;
 }
 
 double DynamicPoint::get_dxdt() const{return dxdt;}
@@ -236,21 +240,31 @@ double DynamicPoint::calculateDistance(const std::shared_ptr<DynamicPoint> p) co
 	double p_x = p->getX();
 	double p_y = p->getY();
 	double p_dxdt = p->get_dxdt();
-	double p_dydt = p->getdydt();
+	double p_dydt = p->get_dydt();
 
-	double dx = p_x > x ? p_x-x : x-p_x;
-	double dy = p_y > y ? p_y-y : y-p_y;
+	// double dx = p_x > x ? p_x-x : x-p_x;
+	// double dy = p_y > y ? p_y-y : y-p_y;
+	// assert(dx >= 0);
+	// assert(dy >=0);
+	// double v_diff_x = p_dxdt > dxdt ? p_dxdt-dxdt : dxdt-p_dxdt;
+	// double v_diff_y = p_dydt > dydt ? p_dydt-dydt : dydt-p_dydt;
+	// assert(v_diff_x >=0 && v_diff_y >=0);
 
-	double v_diff_x = p_dxdt > dxdt ? p_dxdt-dxdt : dxdt-p_dxdt;
-	double v_diff_y = p_dydt > dydt ? p_dydt-dydt : dydt-p_dydt;
+	//return std::max(dx/dxdtMax, dy/dydtMax) + (v_diff_x+v_diff_y)/accel_max;
+	double dx = p_x - x;
+	double dy = p_y - y;
+	double dv_x = p_dxdt - dxdt;
+	double dv_y = p_dydt - dydt;
 
-	return max(dx/dxdtMax, dy/dydtMax) + (v_diff_x+v_diff_y)/accel_max;
+	double t_space = (dx*dx + dy*dy)/(dydtMax*dydtMax);
+	double t_vel = (dv_x*dv_x + dv_y*dv_y)/(accel_max*accel_max);
+	return t_space + t_vel;
 }
 
 double DynamicPoint::calculateCost(const std::shared_ptr<DynamicPoint> p) const{
 	// cost parameterized as distance between points as of 5/20/19
 
-	return calculatedDistance(p);
+	return calculateDistance(p);
 }
 
 // Pseudo-random sequence used for sampling scheme
@@ -260,11 +274,11 @@ void DynamicPoint::genRandom(const Environment& env){
 	std::random_device rd; //Get random seed
 	std::mt19937 gen(rd()); //mersenne_twister_engine seeded with rd()
 	double lower_bound_pos = 0;
-	std::uniform_real_distribution<> xDistribution(lower_bound_pos, env.getDeltaX());
-	std::uniform_real_distribution<> yDistribution(lower_bound_pos, env.getDeltaY());
+	std::uniform_real_distribution<double> xDistribution(lower_bound_pos, env.getDeltaX());
+	std::uniform_real_distribution<double> yDistribution(lower_bound_pos, env.getDeltaY());
 
-	std::uniform_real_distribution<> vxDistribution(-dxdtMax,dxdtMax);
-	std::uniform_real_distribution<> vyDistribution(-dydtMax,dydtMax);
+	std::uniform_real_distribution<double> vxDistribution(-dxdtMax,dxdtMax);
+	std::uniform_real_distribution<double> vyDistribution(-dydtMax,dydtMax);
 
 	x = xDistribution(gen);
 	y = yDistribution(gen);
@@ -293,7 +307,7 @@ void DynamicPoint::genRandom(const Environment& env){
 std::shared_ptr<DynamicPoint> DynamicPoint::moveTowards(const std::shared_ptr<DynamicPoint> p_goal,
 	const double dt) const{
 	double p_x = p_goal->getX(), p_y = p_goal->getY(), p_dxdt = p_goal->get_dxdt(),
-		p_dydt = p_goal->getdydt();
+		p_dydt = p_goal->get_dydt();
 
 	double d_mag = std::sqrt(calculateCost(p_goal));
 
@@ -305,11 +319,11 @@ std::shared_ptr<DynamicPoint> DynamicPoint::moveTowards(const std::shared_ptr<Dy
 
 	double a_x_req = (delta_x - dxdt * dt)/(0.5*dt*dt);
 	double a_y_req = (delta_y - dydt*dt)/(0.5*dt*dt);
-	double a_spatial_req = a_x_req*a_x_req + a_y_req*a_y_req;
+	double a_spatial_req = std::sqrt(a_x_req*a_x_req + a_y_req*a_y_req);
 
 	double a_x_req_v = delta_v_x/dt;
 	double a_y_req_v = delta_v_y/dt;
-	double a_vel_req = a_x_req_v*a_x_req_v + a_y_req_v*a_y_req_v;
+	double a_vel_req = std::sqrt(a_x_req_v*a_x_req_v + a_y_req_v*a_y_req_v);
 
 	// 4 options at this point with greedy approach
 	// 1) with accel max, p_goal cannot be reached, so get as far as possible
@@ -332,10 +346,14 @@ std::shared_ptr<DynamicPoint> DynamicPoint::moveTowards(const std::shared_ptr<Dy
 		else{a_x = a_x_req_v; a_y = a_y_req_v;}
 	}
 	double x_new = x + dxdt*dt + 0.5 * a_x * dt * dt;
-	double y_new = x + dxdt*dt + 0.5 * a_y * dt * dt;
+	double y_new = y + dydt*dt + 0.5 * a_y * dt * dt;
 	double dxdt_new = dxdt + a_x*dt;
 	double dydt_new = dydt + a_y*dt;
-	return std::make_shared<DynamicPoint>(x_new,y_new,dxdt_new,dydt_new);
+	return std::make_shared<DynamicPoint>(x_new,y_new,dxdt_new,dydt_new,accel_max);
+}
+
+void DynamicPoint::printItem(std::ofstream& os) const{
+	os << x << "," << y << "," << dxdt << "," << dydt;
 }
 // Line ==============================================================
 

@@ -16,7 +16,7 @@ class TreeNode{
 	public:
 		TreeNode();
 		TreeNode(std::shared_ptr<T> item_in);
-		TreeNode(std::shared_ptr<T> item_in, 
+		TreeNode(std::shared_ptr<T> item_in,
 				std::shared_ptr<TreeNode<T>> parent_in);
 		void setItem(std::shared_ptr<T> item_in);
 		std::shared_ptr<T> getItem() const;
@@ -36,6 +36,7 @@ class TreeAncestorPath{
 		void createAncestorPath(const TreeNode<T>& youngestNode);
 		std::vector<std::shared_ptr<TreeNode<T>>> getPath() const;
 		void printPath(std::ofstream& os) const;
+		double getPathCost() const{return path.back()->getCost();}
 };
 
 #endif
